@@ -1,51 +1,62 @@
 const express = require('express');
-const cors = require('cors');
 const dotenv = require('dotenv');
+const cors = require('cors');
+const morgan = require('morgan');
 const connectDB = require('./config/db');
 const errorHandler = require('./middlewares/errorHandler');
 
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
+// Connect to database
 connectDB();
 
+// Initialize express app
 const app = express();
 
 // Middleware
-app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN,
+  credentials: true
+}));
+
+// Logger middleware
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
 // Routes
-app.use('/auth', require('./routes/auth'));
-app.use('/hotels', require('./routes/hotels'));
-app.use('/rooms', require('./routes/rooms'));
-app.use('/bookings', require('./routes/bookings'));
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/hotels', require('./routes/hotelRoutes'));
+app.use('/api/rooms', require('./routes/roomRoutes'));
+app.use('/api/bookings', require('./routes/bookingRoutes'));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.status(200).json({ 
-        status: 'OK', 
-        message: 'Hotel Booking API is running',
-        timestamp: new Date().toISOString()
-    });
+// Base route
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Hotel Booking API' });
 });
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Route not found'
-    });
-});
-
-// Error handling middleware (must be last)
+// Error handler middleware (should be last)
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+// Handle unhandled routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.originalUrl}`
+  });
+});
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
+// Start server
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.log(`Error: ${err.message}`);
+  // Close server & exit process
+  server.close(() => process.exit(1));
 });

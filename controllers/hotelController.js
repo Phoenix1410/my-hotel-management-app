@@ -1,203 +1,229 @@
 const Hotel = require('../models/Hotel');
 
-// @desc    Add new hotel
-// @route   POST /hotels
-// @access  Private/Admin
-// Sample request body: { "name": "Grand Hotel", "description": "Luxury hotel", "location": "Delhi", "starRating": 5, "amenities": ["WiFi", "Pool"] }
-const createHotel = async (req, res, next) => {
-    try {
-        const { name, description, location, starRating, amenities, address, phone, email } = req.body;
+/**
+ * @desc    Create a new hotel
+ * @route   POST /api/hotels
+ * @access  Private/Admin
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Created hotel data
+ * 
+ * @example
+ * // Request body
+ * {
+ *   "name": "Grand Hotel",
+ *   "description": "Luxury hotel in the heart of the city",
+ *   "location": "New York",
+ *   "address": {
+ *     "street": "123 Main St",
+ *     "city": "New York",
+ *     "state": "NY",
+ *     "zipCode": "10001",
+ *     "country": "USA"
+ *   },
+ *   "starRating": 5,
+ *   "amenities": ["WiFi", "Pool", "Spa", "Gym"],
+ *   "images": ["image1.jpg", "image2.jpg"]
+ * }
+ */
+exports.createHotel = async (req, res, next) => {
+  try {
+    // Add user to req.body
+    req.body.createdBy = req.user.id;
 
-        const hotel = await Hotel.create({
-            name,
-            description,
-            location,
-            starRating,
-            amenities: amenities || [],
-            address,
-            phone,
-            email,
-            createdBy: req.user.id
-        });
+    const hotel = await Hotel.create(req.body);
 
-        await hotel.populate('createdBy', 'name email');
-
-        res.status(201).json({
-            success: true,
-            message: 'Hotel created successfully',
-            data: { hotel }
-        });
-    } catch (error) {
-        next(error);
-    }
+    res.status(201).json({
+      success: true,
+      data: hotel
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// @desc    Get all hotels with filtering
-// @route   GET /hotels?location=delhi&star=3&name=hotel
-// @access  Public
-const getHotels = async (req, res, next) => {
-    try {
-        const { location, star, name, page = 1, limit = 10 } = req.query;
-        
-        // Build query object
-        let query = { isActive: true };
-        
-        if (location) {
-            query.location = { $regex: location, $options: 'i' };
-        }
-        
-        if (star) {
-            query.starRating = parseInt(star);
-        }
-        
-        if (name) {
-            query.name = { $regex: name, $options: 'i' };
-        }
+/**
+ * @desc    Get all hotels with filtering
+ * @route   GET /api/hotels
+ * @access  Public
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Array of hotels
+ * 
+ * @example
+ * // Query parameters
+ * // /api/hotels?location=New York&starRating[gte]=4&sort=name&limit=10&page=1
+ */
+exports.getHotels = async (req, res, next) => {
+  try {
+    // Copy req.query
+    const reqQuery = { ...req.query };
 
-        // Calculate pagination
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-        
-        // Get hotels with pagination
-        const hotels = await Hotel.find(query)
-            .populate('createdBy', 'name email')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit));
+    // Fields to exclude from filtering
+    const removeFields = ['select', 'sort', 'page', 'limit'];
+    removeFields.forEach(param => delete reqQuery[param]);
 
-        // Get total count for pagination
-        const total = await Hotel.countDocuments(query);
-        const totalPages = Math.ceil(total / parseInt(limit));
+    // Create query string
+    let queryStr = JSON.stringify(reqQuery);
 
-        res.status(200).json({
-            success: true,
-            data: {
-                hotels,
-                pagination: {
-                    currentPage: parseInt(page),
-                    totalPages,
-                    totalHotels: total,
-                    hasNext: parseInt(page) < totalPages,
-                    hasPrev: parseInt(page) > 1
-                }
-            }
-        });
-    } catch (error) {
-        next(error);
+    // Create operators ($gt, $gte, etc)
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+
+    // Finding resource
+    let query = Hotel.find(JSON.parse(queryStr));
+
+    // Select fields
+    if (req.query.select) {
+      const fields = req.query.select.split(',').join(' ');
+      query = query.select(fields);
     }
+
+    // Sort
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = await Hotel.countDocuments(JSON.parse(queryStr));
+
+    query = query.skip(startIndex).limit(limit);
+
+    // Execute query
+    const hotels = await query;
+
+    // Pagination result
+    const pagination = {};
+
+    if (endIndex < total) {
+      pagination.next = {
+        page: page + 1,
+        limit
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      count: hotels.length,
+      pagination,
+      data: hotels
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// @desc    Get hotel by ID
-// @route   GET /hotels/:id
-// @access  Public
-const getHotelById = async (req, res, next) => {
-    try {
-        const hotel = await Hotel.findById(req.params.id)
-            .populate('createdBy', 'name email');
+/**
+ * @desc    Get single hotel
+ * @route   GET /api/hotels/:id
+ * @access  Public
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Hotel data
+ */
+exports.getHotel = async (req, res, next) => {
+  try {
+    const hotel = await Hotel.findById(req.params.id).populate('rooms');
 
-        if (!hotel || !hotel.isActive) {
-            return res.status(404).json({
-                success: false,
-                message: 'Hotel not found'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            data: { hotel }
-        });
-    } catch (error) {
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid hotel ID'
-            });
-        }
-        next(error);
+    if (!hotel) {
+      res.status(404);
+      throw new Error(`Hotel not found with id of ${req.params.id}`);
     }
+
+    res.status(200).json({
+      success: true,
+      data: hotel
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// @desc    Update hotel
-// @route   PUT /hotels/:id
-// @access  Private/Admin
-const updateHotel = async (req, res, next) => {
-    try {
-        const { name, description, location, starRating, amenities, address, phone, email } = req.body;
+/**
+ * @desc    Update hotel
+ * @route   PUT /api/hotels/:id
+ * @access  Private/Admin
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Updated hotel data
+ */
+exports.updateHotel = async (req, res, next) => {
+  try {
+    let hotel = await Hotel.findById(req.params.id);
 
-        let hotel = await Hotel.findById(req.params.id);
-
-        if (!hotel) {
-            return res.status(404).json({
-                success: false,
-                message: 'Hotel not found'
-            });
-        }
-
-        // Update fields
-        hotel.name = name || hotel.name;
-        hotel.description = description || hotel.description;
-        hotel.location = location || hotel.location;
-        hotel.starRating = starRating || hotel.starRating;
-        hotel.amenities = amenities || hotel.amenities;
-        hotel.address = address || hotel.address;
-        hotel.phone = phone || hotel.phone;
-        hotel.email = email || hotel.email;
-
-        await hotel.save();
-        await hotel.populate('createdBy', 'name email');
-
-        res.status(200).json({
-            success: true,
-            message: 'Hotel updated successfully',
-            data: { hotel }
-        });
-    } catch (error) {
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid hotel ID'
-            });
-        }
-        next(error);
+    if (!hotel) {
+      res.status(404);
+      throw new Error(`Hotel not found with id of ${req.params.id}`);
     }
+
+    // Make sure user is hotel owner or admin
+    if (hotel.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+      res.status(403);
+      throw new Error(`User ${req.user.id} is not authorized to update this hotel`);
+    }
+
+    hotel = await Hotel.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
+
+    res.status(200).json({
+      success: true,
+      data: hotel
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// @desc    Delete hotel
-// @route   DELETE /hotels/:id
-// @access  Private/Admin
-const deleteHotel = async (req, res, next) => {
-    try {
-        const hotel = await Hotel.findById(req.params.id);
+/**
+ * @desc    Delete hotel
+ * @route   DELETE /api/hotels/:id
+ * @access  Private/Admin
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Success message
+ */
+exports.deleteHotel = async (req, res, next) => {
+  try {
+    const hotel = await Hotel.findById(req.params.id);
 
-        if (!hotel) {
-            return res.status(404).json({
-                success: false,
-                message: 'Hotel not found'
-            });
-        }
-
-        // Soft delete by setting isActive to false
-        hotel.isActive = false;
-        await hotel.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'Hotel deleted successfully'
-        });
-    } catch (error) {
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid hotel ID'
-            });
-        }
-        next(error);
+    if (!hotel) {
+      res.status(404);
+      throw new Error(`Hotel not found with id of ${req.params.id}`);
     }
-};
 
-module.exports = {
-    createHotel,
-    getHotels,
-    getHotelById,
-    updateHotel,
-    deleteHotel
+    // Make sure user is hotel owner or admin
+    if (hotel.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+      res.status(403);
+      throw new Error(`User ${req.user.id} is not authorized to delete this hotel`);
+    }
+
+    await hotel.remove();
+
+    res.status(200).json({
+      success: true,
+      data: {}
+    });
+  } catch (error) {
+    next(error);
+  }
 };

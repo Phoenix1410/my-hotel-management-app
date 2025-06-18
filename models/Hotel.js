@@ -1,67 +1,75 @@
 const mongoose = require('mongoose');
 
-const hotelSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Hotel name is required'],
-        trim: true,
-        maxlength: [100, 'Hotel name cannot be more than 100 characters']
+const HotelSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Please add a hotel name'],
+    trim: true,
+    maxlength: [100, 'Name cannot be more than 100 characters']
+  },
+  description: {
+    type: String,
+    required: [true, 'Please add a description'],
+    maxlength: [1000, 'Description cannot be more than 1000 characters']
+  },
+  location: {
+    type: String,
+    required: [true, 'Please add a location'],
+    trim: true
+  },
+  address: {
+    street: String,
+    city: {
+      type: String,
+      required: [true, 'Please add a city']
     },
-    description: {
-        type: String,
-        required: [true, 'Hotel description is required'],
-        maxlength: [1000, 'Description cannot be more than 1000 characters']
-    },
-    location: {
-        type: String,
-        required: [true, 'Hotel location is required'],
-        trim: true,
-        maxlength: [100, 'Location cannot be more than 100 characters']
-    },
-    starRating: {
-        type: Number,
-        required: [true, 'Star rating is required'],
-        min: [1, 'Star rating must be at least 1'],
-        max: [5, 'Star rating cannot be more than 5']
-    },
-    createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    isActive: {
-        type: Boolean,
-        default: true
-    },
-    amenities: [{
-        type: String,
-        trim: true
-    }],
-    images: [{
-        type: String,
-        trim: true
-    }],
-    address: {
-        type: String,
-        trim: true,
-        maxlength: [200, 'Address cannot be more than 200 characters']
-    },
-    phone: {
-        type: String,
-        trim: true,
-        match: [/^\+?[\d\s\-\(\)]+$/, 'Please enter a valid phone number']
-    },
-    email: {
-        type: String,
-        lowercase: true,
-        match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email']
+    state: String,
+    zipCode: String,
+    country: {
+      type: String,
+      required: [true, 'Please add a country']
     }
+  },
+  starRating: {
+    type: Number,
+    required: [true, 'Please add a star rating'],
+    min: [1, 'Rating must be at least 1'],
+    max: [5, 'Rating cannot be more than 5']
+  },
+  amenities: {
+    type: [String],
+    default: []
+  },
+  images: {
+    type: [String],
+    default: []
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 }, {
-    timestamps: true
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-// Index for search optimization
-hotelSchema.index({ location: 1, starRating: 1 });
-hotelSchema.index({ name: 'text', description: 'text', location: 'text' });
+// Virtual for rooms in this hotel
+HotelSchema.virtual('rooms', {
+  ref: 'Room',
+  localField: '_id',
+  foreignField: 'hotelId',
+  justOne: false
+});
 
-module.exports = mongoose.model('Hotel', hotelSchema);
+// Cascade delete rooms when a hotel is deleted
+HotelSchema.pre('remove', async function(next) {
+  await this.model('Room').deleteMany({ hotelId: this._id });
+  next();
+});
+
+module.exports = mongoose.model('Hotel', HotelSchema);

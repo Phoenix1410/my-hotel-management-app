@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotelEase - Find Your Perfect Stay</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind Configuration
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            300: '#5eead4',
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+    <!-- Navbar - Sticky at top -->
+    <nav class="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-hotel text-primary-600 text-2xl"></i>
+                    <span class="text-xl font-bold text-gray-800 dark:text-white">HotelEase</span>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">Home</a>
+                    <a href="#" class="text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">Hotels</a>
+                    <a href="#" class="text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">About</a>
+                    <a href="#" class="text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">Contact</a>
+                </div>
+                
+                <!-- Auth Buttons -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <button class="px-4 py-2 text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">Login</button>
+                    <button class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition duration-300 ease-in-out transform hover:scale-105">Sign Up</button>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu (Hidden by default) -->
+            <div id="mobile-menu" class="md:hidden hidden pb-4">
+                <a href="#" class="block py-2 text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">Home</a>
+                <a href="#" class="block py-2 text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">Hotels</a>
+                <a href="#" class="block py-2 text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">About</a>
+                <a href="#" class="block py-2 text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">Contact</a>
+                <div class="flex space-x-4 mt-4">
+                    <button class="px-4 py-2 text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">Login</button>
+                    <button class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition duration-300 ease-in-out">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Search Bar -->
+    <section class="relative bg-gradient-to-r from-primary-600 to-primary-800 py-16 md:py-24">
+        <div class="absolute inset-0 bg-black opacity-30"></div>
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="text-center mb-10">
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">Find Your Perfect Stay</h1>
+                <p class="text-lg md:text-xl text-white opacity-90 max-w-2xl mx-auto">Discover amazing hotels at unbeatable prices, with instant confirmation and 24/7 support.</p>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 md:p-6 max-w-5xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Location -->
+                    <div class="relative">
+                        <label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
+                        <div class="relative">
+                            <i class="fas fa-map-marker-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="location" placeholder="Where are you going?" class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                        </div>
+                    </div>
+                    
+                    <!-- Check-in Date -->
+                    <div>
+                        <label for="check-in" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Check-in</label>
+                        <div class="relative">
+                            <i class="far fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="date" id="check-in" class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                        </div>
+                    </div>
+                    
+                    <!-- Check-out Date -->
+                    <div>
+                        <label for="check-out" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Check-out</label>
+                        <div class="relative">
+                            <i class="far fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="date" id="check-out" class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                        </div>
+                    </div>
+                    
+                    <!-- Guests -->
+                    <div>
+                        <label for="guests" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Guests</label>
+                        <div class="relative">
+                            <i class="fas fa-user-friends absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <select id="guests" class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white appearance-none">
+                                <option value="1">1 Adult</option>
+                                <option value="2">2 Adults</option>
+                                <option value="3">3 Adults</option>
+                                <option value="4">4 Adults</option>
+                                <option value="family">2 Adults, 2 Children</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Search Button -->
+                <div class="mt-6 text-center">
+                    <button class="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                        <i class="fas fa-search mr-2"></i> Search Hotels
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="container mx-auto px-4 py-8 flex-grow">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Filter Sidebar -->
+            <aside class="w-full lg:w-1/4">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-24">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Filter Hotels</h2>
+                    
+                    <!-- Price Range -->
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Price Range</h3>
+                        <div class="px-2">
+                            <input type="range" min="0" max="1000" value="500" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-600">
+                            <div class="flex justify-between mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                <span>$0</span>
+                                <span>$500</span>
+                                <span>$1000</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Star Rating -->
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Star Rating</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">5 Stars</span>
+                                <div class="text-yellow-400 ml-auto">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </div>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">4 Stars</span>
+                                <div class="text-yellow-400 ml-auto">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </div>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">3 Stars</span>
+                                <div class="text-yellow-400 ml-auto">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </div>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">2 Stars</span>
+                                <div class="text-yellow-400 ml-auto">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </div>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">1 Star</span>
+                                <div class="text-yellow-400 ml-auto">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Room Type -->
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Room Type</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">Single Room</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">Double Room</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">Deluxe Room</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">Suite</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Amenities -->
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Amenities</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">WiFi</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">Pool</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">AC</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">Gym</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">Parking</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">Restaurant</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700">
+                                <span class="text-gray-700 dark:text-gray-300">Pet-friendly</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Apply Filters Button -->
+                    <button class="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition duration-300 ease-in-out">
+                        Apply Filters
+                    </button>
+                </div>
+            </aside>
+            
+            <!-- Hotel Listings -->
+            <div class="w-full lg:w-3/4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Available Hotels</h2>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        <span>Showing 1-6 of 24 hotels</span>
+                    </div>
+                </div>
+                
+                <!-- Hotel Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Hotel Card 1 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Luxury Hotel" class="w-full h-48 object-cover">
+                            <div class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">20% OFF</div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Grand Plaza Hotel</h3>
+                                <div class="text-yellow-400">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-gray-600 dark:text-gray-400 mb-4">
+                                <i class="fas fa-map-marker-alt mr-2"></i>
+                                <span>Downtown, New York</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Deluxe Room</span>
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Suite</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-4 text-gray-600 dark:text-gray-400">
+                                <i class="fas fa-wifi" title="WiFi"></i>
+                                <i class="fas fa-swimming-pool" title="Pool"></i>
+                                <i class="fas fa-snowflake" title="AC"></i>
+                                <i class="fas fa-dumbbell" title="Gym"></i>
+                                <i class="fas fa-utensils" title="Restaurant"></i>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-2xl font-bold text-gray-800 dark:text-white">$199</span>
+                                    <span class="text-gray-600 dark:text-gray-400 text-sm">/night</span>
+                                </div>
+                                <div class="space-x-2">
+                                    <button class="px-3 py-1 border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-gray-700 rounded-md transition duration-300 ease-in-out">View Details</button>
+                                    <button class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition duration-300 ease-in-out">Book Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hotel Card 2 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Boutique Hotel" class="w-full h-48 object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Boutique Retreat</h3>
+                                <div class="text-yellow-400">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-gray-600 dark:text-gray-400 mb-4">
+                                <i class="fas fa-map-marker-alt mr-2"></i>
+                                <span>Chelsea, London</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Double Room</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-4 text-gray-600 dark:text-gray-400">
+                                <i class="fas fa-wifi" title="WiFi"></i>
+                                <i class="fas fa-snowflake" title="AC"></i>
+                                <i class="fas fa-parking" title="Parking"></i>
+                                <i class="fas fa-utensils" title="Restaurant"></i>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-2xl font-bold text-gray-800 dark:text-white">$149</span>
+                                    <span class="text-gray-600 dark:text-gray-400 text-sm">/night</span>
+                                </div>
+                                <div class="space-x-2">
+                                    <button class="px-3 py-1 border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-gray-700 rounded-md transition duration-300 ease-in-out">View Details</button>
+                                    <button class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition duration-300 ease-in-out">Book Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hotel Card 3 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1332&q=80" alt="Beach Resort" class="w-full h-48 object-cover">
+                            <div class="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">BESTSELLER</div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Oceanview Resort</h3>
+                                <div class="text-yellow-400">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-gray-600 dark:text-gray-400 mb-4">
+                                <i class="fas fa-map-marker-alt mr-2"></i>
+                                <span>Malibu, California</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Deluxe Room</span>
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Suite</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-4 text-gray-600 dark:text-gray-400">
+                                <i class="fas fa-wifi" title="WiFi"></i>
+                                <i class="fas fa-swimming-pool" title="Pool"></i>
+                                <i class="fas fa-snowflake" title="AC"></i>
+                                <i class="fas fa-dumbbell" title="Gym"></i>
+                                <i class="fas fa-utensils" title="Restaurant"></i>
+                                <i class="fas fa-paw" title="Pet-friendly"></i>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-2xl font-bold text-gray-800 dark:text-white">$299</span>
+                                    <span class="text-gray-600 dark:text-gray-400 text-sm">/night</span>
+                                </div>
+                                <div class="space-x-2">
+                                    <button class="px-3 py-1 border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-gray-700 rounded-md transition duration-300 ease-in-out">View Details</button>
+                                    <button class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition duration-300 ease-in-out">Book Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hotel Card 4 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="City Hotel" class="w-full h-48 object-cover">
+                            <div class="absolute inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+                                <span class="text-white font-bold text-xl">SOLD OUT</span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Urban Loft Hotel</h3>
+                                <div class="text-yellow-400">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-gray-600 dark:text-gray-400 mb-4">
+                                <i class="fas fa-map-marker-alt mr-2"></i>
+                                <span>Downtown, Chicago</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Single Room</span>
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Double Room</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-4 text-gray-600 dark:text-gray-400">
+                                <i class="fas fa-wifi" title="WiFi"></i>
+                                <i class="fas fa-snowflake" title="AC"></i>
+                                <i class="fas fa-parking" title="Parking"></i>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-2xl font-bold text-gray-800 dark:text-white">$129</span>
+                                    <span class="text-gray-600 dark:text-gray-400 text-sm">/night</span>
+                                </div>
+                                <div class="space-x-2">
+                                    <button class="px-3 py-1 border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-gray-700 rounded-md transition duration-300 ease-in-out">View Details</button>
+                                    <button class="px-3 py-1 bg-gray-400 cursor-not-allowed text-white rounded-md">Sold Out</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hotel Card 5 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Mountain Lodge" class="w-full h-48 object-cover">
+                            <div class="absolute top-4 left-4 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">NEW</div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Mountain View Lodge</h3>
+                                <div class="text-yellow-400">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-gray-600 dark:text-gray-400 mb-4">
+                                <i class="fas fa-map-marker-alt mr-2"></i>
+                                <span>Aspen, Colorado</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Double Room</span>
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Suite</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-4 text-gray-600 dark:text-gray-400">
+                                <i class="fas fa-wifi" title="WiFi"></i>
+                                <i class="fas fa-snowflake" title="AC"></i>
+                                <i class="fas fa-parking" title="Parking"></i>
+                                <i class="fas fa-utensils" title="Restaurant"></i>
+                                <i class="fas fa-paw" title="Pet-friendly"></i>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-2xl font-bold text-gray-800 dark:text-white">$249</span>
+                                    <span class="text-gray-600 dark:text-gray-400 text-sm">/night</span>
+                                </div>
+                                <div class="space-x-2">
+                                    <button class="px-3 py-1 border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-gray-700 rounded-md transition duration-300 ease-in-out">View Details</button>
+                                    <button class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition duration-300 ease-in-out">Book Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hotel Card 6 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1176&q=80" alt="Historic Hotel" class="w-full h-48 object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Historic Grand Hotel</h3>
+                                <div class="text-yellow-400">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-gray-600 dark:text-gray-400 mb-4">
+                                <i class="fas fa-map-marker-alt mr-2"></i>
+                                <span>Old Town, Prague</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Deluxe Room</span>
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded">Suite</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mb-4 text-gray-600 dark:text-gray-400">
+                                <i class="fas fa-wifi" title="WiFi"></i>
+                                <i class="fas fa-snowflake" title="AC"></i>
+                                <i class="fas fa-dumbbell" title="Gym"></i>
+                                <i class="fas fa-utensils" title="Restaurant"></i>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-2xl font-bold text-gray-800 dark:text-white">$219</span>
+                                    <span class="text-gray-600 dark:text-gray-400 text-sm">/night</span>
+                                </div>
+                                <div class="space-x-2">
+                                    <button class="px-3 py-1 border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-gray-700 rounded-md transition duration-300 ease-in-out">View Details</button>
+                                    <button class="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition duration-300 ease-in-out">Book Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="mt-10 flex justify-center">
+                    <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-primary-50 dark:bg-primary-900 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800">
+                            1
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            2
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            3
+                        </a>
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            ...
+                        </span>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            8
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 dark:bg-gray-800 pt-12 pb-8 mt-12 border-t border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- About Us -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">About Us</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">HotelEase is a leading hotel booking platform offering the best deals on accommodations worldwide. We're committed to making travel accessible and enjoyable for everyone.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Support -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Support</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">Help Center</a></li>
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">FAQs</a></li>
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">Cancellation Policy</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Legal -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Legal</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">Terms of Service</a></li>
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">Cookie Policy</a></li>
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">Accessibility</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Newsletter -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Subscribe to Our Newsletter</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">Get exclusive deals and travel tips delivered straight to your inbox.</p>
+                    <form class="flex">
+                        <input type="email" placeholder="Your email address" class="flex-grow px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-l-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                        <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-r-md transition duration-300 ease-in-out">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Copyright -->
+            <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700 text-center text-gray-600 dark:text-gray-400">
+                <p>&copy; 2023 HotelEase. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login/Signup Modal (Hidden by default) -->
+    <div id="auth-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black opacity-50 transition-opacity" id="modal-overlay"></div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-auto z-10 relative">
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white" id="modal-title">Login</h3>
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Modal Body -->
+                <div class="p-6">
+                    <!-- Login Form -->
+                    <form id="login-form">
+                        <div class="mb-4">
+                            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                            <input type="email" id="email" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                            <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+                            <div class="flex justify-end mt-1">
+                                <a href="#" class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400">Forgot password?</a>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition duration-300 ease-in-out">Login</button>
+                    </form>
+                    
+                    <!-- Signup Form (Hidden by default) -->
+                    <form id="signup-form" class="hidden">
+                        <div class="mb-4">
+                            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                            <input type="text" id="name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="signup-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                            <input type="email" id="signup-email" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="signup-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                            <input type="password" id="signup-password" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="confirm-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
+                            <input type="password" id="confirm-password" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+                        </div>
+                        <button type="submit" class="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition duration-300 ease-in-out">Create Account</button>
+                    </form>
+                    
+                    <!-- Form Toggle -->
+                    <div class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                        <p id="form-toggle-text">Don't have an account? <a href="#" id="form-toggle" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium">Sign up</a></p>
+                    </div>
+                    
+                    <!-- Social Login -->
+                    <div class="mt-6">
+                        <div class="relative">
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                            </div>
+                            <div class="relative flex justify-center text-sm">
+                                <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or continue with</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 grid grid-cols-2 gap-3">
+                            <button type="button" class="py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                <i class="fab fa-google mr-2"></i> Google
+                            </button>
+                            <button type="button" class="py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                <i class="fab fa-facebook-f mr-2"></i> Facebook
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Alert (Hidden by default) -->
+    <div id="toast-alert" class="fixed bottom-4 right-4 z-50 hidden">
+        <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="toast-message">Booking confirmed successfully!</span>
+            <button id="close-toast" class="ml-4 text-white focus:outline-none">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Skeleton Loader Template (Hidden by default) -->
+    <template id="skeleton-loader">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse">
+            <div class="h-48 bg-gray-300 dark:bg-gray-700"></div>
+            <div class="p-4">
+                <div class="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
+                <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full mb-2"></div>
+                <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full mb-2"></div>
+                <div class="h-10 bg-gray-300 dark:bg-gray-700 rounded w-full mt-4"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- JavaScript -->
+    <script>
+        // DOM Elements
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const loginButton = document.getElementById('login-button');
+        const signupButton = document.getElementById('signup-button');
+        const authModal = document.getElementById('auth-modal');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const closeModalButton = document.getElementById('close-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const formToggle = document.getElementById('form-toggle');
+        const formToggleText = document.getElementById('form-toggle-text');
+        const toastAlert = document.getElementById('toast-alert');
+        const closeToast = document.getElementById('close-toast');
+        const bookNowButtons = document.querySelectorAll('.book-now-btn');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+        // Mobile Menu Toggle
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Dark Mode Toggle
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            // Save preference to localStorage
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.setItem('darkMode', 'enabled');
+                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+                darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        });
+
+        // Check for saved dark mode preference
+        if (localStorage.getItem('darkMode') === 'enabled' || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem('darkMode'))) {
+            document.documentElement.classList.add('dark');
+            darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        // Auth Modal Functions
+        function openModal(mode = 'login') {
+            authModal.classList.remove('hidden');
+            if (mode === 'login') {
+                modalTitle.textContent = 'Login';
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                formToggleText.innerHTML = 'Don\'t have an account? <a href="#" id="form-toggle" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium">Sign up</a>';
+            } else {
+                modalTitle.textContent = 'Create Account';
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                formToggleText.innerHTML = 'Already have an account? <a href="#" id="form-toggle" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium">Login</a>';
+            }
+            // Re-attach event listener to the new toggle element
+            document.getElementById('form-toggle').addEventListener('click', toggleForm);
+        }
+
+        function closeModal() {
+            authModal.classList.add('hidden');
+        }
+
+        function toggleForm(e) {
+            e.preventDefault();
+            if (loginForm.classList.contains('hidden')) {
+                openModal('login');
+            } else {
+                openModal('signup');
+            }
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toastAlert.classList.remove('hidden');
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                toastAlert.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Event Listeners
+        loginButton.addEventListener('click', () => openModal('login'));
+        signupButton.addEventListener('click', () => openModal('signup'));
+        closeModalButton.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
+        formToggle.addEventListener('click', toggleForm);
+        closeToast.addEventListener('click', () => toastAlert.classList.add('hidden'));
+
+        // Book Now Button Event
+        bookNowButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const hotelName = this.closest('.hotel-card').querySelector('h3').textContent;
+                showToast(`Booking request for ${hotelName} confirmed!`);
+            });
+        });
+
+        // Form Submissions (Prevent default for demo)
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            closeModal();
+            showToast('Login successful!');
+        });
+
+        signupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            closeModal();
+            showToast('Account created successfully!');
+        });
+
+        // Simulate loading state with skeleton loaders
+        function simulateLoading() {
+            const hotelListings = document.querySelector('.hotel-listings');
+            const skeletonTemplate = document.getElementById('skeleton-loader');
+            const currentListings = hotelListings.innerHTML;
+            
+            // Replace with skeletons
+            hotelListings.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const skeleton = skeletonTemplate.content.cloneNode(true);
+                hotelListings.appendChild(skeleton);
+            }
+            
+            // Restore after timeout
+            setTimeout(() => {
+                hotelListings.innerHTML = currentListings;
+                // Reattach event listeners to book now buttons
+                document.querySelectorAll('.book-now-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const hotelName = this.closest('.hotel-card').querySelector('h3').textContent;
+                        showToast(`Booking request for ${hotelName} confirmed!`);
+                    });
+                });
+            }, 2000);
+        }
+
+        // Filter functionality
+        const applyFiltersButton = document.getElementById('apply-filters');
+        if (applyFiltersButton) {
+            applyFiltersButton.addEventListener('click', function() {
+                simulateLoading();
+            });
+        }
+    </script>
+</body>
+</html>

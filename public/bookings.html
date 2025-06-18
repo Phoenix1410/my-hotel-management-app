@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotel Bookings - Real-time Updates</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* Custom animations for real-time updates */
+    .new-booking-animation {
+      animation: highlight-new 3s ease-in-out;
+    }
+    
+    .update-booking-animation {
+      animation: highlight-update 3s ease-in-out;
+    }
+    
+    .delete-booking-animation {
+      animation: fade-out 0.5s ease-in-out;
+    }
+    
+    @keyframes highlight-new {
+      0%, 100% { background-color: transparent; }
+      20%, 80% { background-color: rgba(52, 211, 153, 0.2); }
+    }
+    
+    @keyframes highlight-update {
+      0%, 100% { background-color: transparent; }
+      20%, 80% { background-color: rgba(96, 165, 250, 0.2); }
+    }
+    
+    @keyframes fade-out {
+      from { opacity: 1; transform: scale(1); }
+      to { opacity: 0; transform: scale(0.9); }
+    }
+    
+    /* Status indicators */
+    .status-confirmed {
+      background-color: #10B981;
+    }
+    
+    .status-cancelled {
+      background-color: #EF4444;
+    }
+    
+    /* Notification toast */
+    .notification-toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      display: none;
+    }
+    
+    .notification-toast.success {
+      background-color: #10B981;
+      color: white;
+    }
+    
+    .notification-toast.error {
+      background-color: #EF4444;
+      color: white;
+    }
+    
+    .notification-toast.info {
+      background-color: #3B82F6;
+      color: white;
+    }
+    
+    .notification-toast.warning {
+      background-color: #F59E0B;
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <!-- Notification Toast -->
+  <div id="notification-toast" class="notification-toast">
+    <span id="notification-message"></span>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-900">My Bookings</h1>
+        <span id="bookings-count" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">0 active bookings</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Real-time indicator -->
+    <div class="flex items-center mb-6 bg-green-50 p-3 rounded-lg">
+      <div class="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+      <p class="text-green-700">Real-time updates enabled</p>
+    </div>
+    
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="flex justify-center my-8">
+      <svg class="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+    
+    <!-- Bookings List -->
+    <div id="bookings-list" class="space-y-4"></div>
+  </main>
+
+  <!-- Mock Admin Panel for Testing -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white shadow-md p-4">
+    <div class="max-w-7xl mx-auto">
+      <h2 class="text-lg font-semibold mb-2">Test Controls (Admin Only)</h2>
+      <div class="flex space-x-4">
+        <button id="create-test-booking" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+          Create Test Booking
+        </button>
+        <button id="update-test-booking" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+          Update Random Booking
+        </button>
+        <button id="cancel-test-booking" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+          Cancel Random Booking
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Our Real-time Bookings Script -->
+  <script src="js/realtime-bookings.js"></script>
+  
+  <!-- Test Script for Admin Panel -->
+  <script>
+    // This script is just for demonstration purposes
+    document.addEventListener('DOMContentLoaded', () => {
+      // Test booking data
+      const testBookingData = {
+        id: crypto.randomUUID(),
+        user_id: 'current-user-id',
+        hotel_id: 'test-hotel-id',
+        hotel_name: 'Grand Hotel',
+        room_id: 'test-room-id',
+        room_type: 'Deluxe Suite',
+        room_number: '101',
+        check_in: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+        check_out: new Date(Date.now() + 86400000 * 4).toISOString().split('T')[0], // 4 days later
+        status: 'confirmed',
+        total_price: 599.99,
+        created_at: new Date().toISOString()
+      };
+      
+      // Create test booking button
+      document.getElementById('create-test-booking').addEventListener('click', () => {
+        // In a real app, this would call the Supabase API
+        // For demo, we'll simulate the real-time event
+        const newBooking = {
+          ...testBookingData,
+          id: crypto.randomUUID()
+        };
+        
+        // Simulate the real-time event
+        handleBookingChange({
+          eventType: 'INSERT',
+          new: newBooking,
+          old: null
+        });
+      });
+      
+      // Update random booking button
+      document.getElementById('update-test-booking').addEventListener('click', () => {
+        if (bookings.length === 0) {
+          showNotification('No bookings to update', 'warning');
+          return;
+        }
+        
+        // Get a random booking
+        const randomIndex = Math.floor(Math.random() * bookings.length);
+        const bookingToUpdate = bookings[randomIndex];
+        
+        // Create updated version
+        const updatedBooking = {
+          ...bookingToUpdate,
+          room_type: bookingToUpdate.room_type === 'Deluxe Suite' ? 'Executive Suite' : 'Deluxe Suite',
+          room_number: bookingToUpdate.room_number === '101' ? '102' : '101',
+          total_price: parseFloat((bookingToUpdate.total_price * 1.1).toFixed(2)) // 10% price increase
+        };
+        
+        // Simulate the real-time event
+        handleBookingChange({
+          eventType: 'UPDATE',
+          new: updatedBooking,
+          old: bookingToUpdate
+        });
+      });
+      
+      // Cancel random booking button
+      document.getElementById('cancel-test-booking').addEventListener('click', () => {
+        const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
+        
+        if (confirmedBookings.length === 0) {
+          showNotification('No confirmed bookings to cancel', 'warning');
+          return;
+        }
+        
+        // Get a random confirmed booking
+        const randomIndex = Math.floor(Math.random() * confirmedBookings.length);
+        const bookingToCancel = confirmedBookings[randomIndex];
+        
+        // Create cancelled version
+        const cancelledBooking = {
+          ...bookingToCancel,
+          status: 'cancelled'
+        };
+        
+        // Simulate the real-time event
+        handleBookingChange({
+          eventType: 'UPDATE',
+          new: cancelledBooking,
+          old: bookingToCancel
+        });
+      });
+    });
+  </script>
+</body>
+</html>

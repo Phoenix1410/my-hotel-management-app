@@ -1,243 +1,288 @@
 const Room = require('../models/Room');
 const Hotel = require('../models/Hotel');
 
-// @desc    Add room to hotel
-// @route   POST /rooms
-// @access  Private/Admin
-// Sample request body: { "hotelId": "64a1b2c3d4e5f6789012", "roomType": "double", "pricePerNight": 2500, "amenities": ["WiFi", "AC"], "maxGuests": 2, "roomNumber": "101" }
-const createRoom = async (req, res, next) => {
-    try {
-        const { hotelId, roomType, pricePerNight, amenities, maxGuests, roomNumber, description, size } = req.body;
-
-        // Check if hotel exists
-        const hotel = await Hotel.findById(hotelId);
-        if (!hotel || !hotel.isActive) {
-            return res.status(404).json({
-                success: false,
-                message: 'Hotel not found'
-            });
-        }
-
-        // Check if room number already exists for this hotel
-        const existingRoom = await Room.findOne({ hotelId, roomNumber });
-        if (existingRoom) {
-            return res.status(400).json({
-                success: false,
-                message: 'Room number already exists for this hotel'
-            });
-        }
-
-        const room = await Room.create({
-            hotelId,
-            roomType,
-            pricePerNight,
-            amenities: amenities || [],
-            maxGuests,
-            roomNumber,
-            description,
-            size
-        });
-
-        await room.populate('hotelId', 'name location');
-
-        res.status(201).json({
-            success: true,
-            message: 'Room created successfully',
-            data: { room }
-        });
-    } catch (error) {
-        next(error);
+/**
+ * @desc    Create a new room
+ * @route   POST /api/rooms
+ * @access  Private/Admin
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Created room data
+ * 
+ * @example
+ * // Request body
+ * {
+ *   "hotelId": "60d0fe4f5311236168a109ca",
+ *   "roomType": "Deluxe",
+ *   "roomNumber": "101",
+ *   "pricePerNight": 150,
+ *   "amenities": ["WiFi", "AC", "TV", "Mini Bar"],
+ *   "maxGuests": 2,
+ *   "description": "Luxurious deluxe room with city view",
+ *   "images": ["room1.jpg", "room2.jpg"]
+ * }
+ */
+exports.createRoom = async (req, res, next) => {
+  try {
+    // Check if hotel exists
+    const hotel = await Hotel.findById(req.body.hotelId);
+    
+    if (!hotel) {
+      res.status(404);
+      throw new Error(`Hotel not found with id of ${req.body.hotelId}`);
     }
+
+    const room = await Room.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      data: room
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// @desc    Get rooms with filtering
-// @route   GET /rooms?hotelId=64a1b2c3d4e5f6789012&priceMin=1000&priceMax=4000&amenities=WiFi,AC
-// @access  Public
-const getRooms = async (req, res, next) => {
-    try {
-        const { hotelId, priceMin, priceMax, amenities, roomType, page = 1, limit = 10 } = req.query;
-        
-        // Build query object
-        let query = { isAvailable: true };
-        
-        if (hotelId) {
-            query.hotelId = hotelId;
-        }
-        
-        if (priceMin || priceMax) {
-            query.pricePerNight = {};
-            if (priceMin) query.pricePerNight.$gte = parseInt(priceMin);
-            if (priceMax) query.pricePerNight.$lte = parseInt(priceMax);
-        }
-        
-        if (amenities) {
-            const amenitiesList = amenities.split(',').map(a => a.trim());
-            query.amenities = { $in: amenitiesList };
-        }
-        
-        if (roomType) {
-            query.roomType = roomType;
-        }
+/**
+ * @desc    Get all rooms with filtering
+ * @route   GET /api/rooms
+ * @access  Public
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Array of rooms
+ * 
+ * @example
+ * // Query parameters
+ * // /api/rooms?hotelId=60d0fe4f5311236168a109ca&pricePerNight[lte]=200&amenities=WiFi,AC&sort=pricePerNight&limit=10&page=1
+ */
+exports.getRooms = async (req, res, next) => {
+  try {
+    // Copy req.query
+    const reqQuery = { ...req.query };
 
-        // Calculate pagination
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-        
-        // Get rooms with pagination
-        const rooms = await Room.find(query)
-            .populate('hotelId', 'name location starRating')
-            .sort({ pricePerNight: 1 })
-            .skip(skip)
-            .limit(parseInt(limit));
+    // Fields to exclude from filtering
+    const removeFields = ['select', 'sort', 'page', 'limit'];
+    removeFields.forEach(param => delete reqQuery[param]);
 
-        // Get total count for pagination
-        const total = await Room.countDocuments(query);
-        const totalPages = Math.ceil(total / parseInt(limit));
-
-        res.status(200).json({
-            success: true,
-            data: {
-                rooms,
-                pagination: {
-                    currentPage: parseInt(page),
-                    totalPages,
-                    totalRooms: total,
-                    hasNext: parseInt(page) < totalPages,
-                    hasPrev: parseInt(page) > 1
-                }
-            }
-        });
-    } catch (error) {
-        next(error);
+    // Handle amenities filter (convert comma-separated to $in operator)
+    if (reqQuery.amenities) {
+      const amenities = reqQuery.amenities.split(',');
+      reqQuery.amenities = { $in: amenities };
     }
+
+    // Create query string
+    let queryStr = JSON.stringify(reqQuery);
+
+    // Create operators ($gt, $gte, etc)
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+
+    // Finding resource
+    let query = Room.find(JSON.parse(queryStr)).populate({
+      path: 'hotelId',
+      select: 'name location starRating'
+    });
+
+    // Select fields
+    if (req.query.select) {
+      const fields = req.query.select.split(',').join(' ');
+      query = query.select(fields);
+    }
+
+    // Sort
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('pricePerNight');
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = await Room.countDocuments(JSON.parse(queryStr));
+
+    query = query.skip(startIndex).limit(limit);
+
+    // Execute query
+    const rooms = await query;
+
+    // Pagination result
+    const pagination = {};
+
+    if (endIndex < total) {
+      pagination.next = {
+        page: page + 1,
+        limit
+      };
+    }
+
+    if (startIndex > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      count: rooms.length,
+      pagination,
+      data: rooms
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// @desc    Get room by ID
-// @route   GET /rooms/:id
-// @access  Public
-const getRoomById = async (req, res, next) => {
-    try {
-        const room = await Room.findById(req.params.id)
-            .populate('hotelId', 'name location starRating address phone email');
+/**
+ * @desc    Get single room
+ * @route   GET /api/rooms/:id
+ * @access  Public
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Room data
+ */
+exports.getRoom = async (req, res, next) => {
+  try {
+    const room = await Room.findById(req.params.id).populate({
+      path: 'hotelId',
+      select: 'name location starRating'
+    });
 
-        if (!room || !room.isAvailable) {
-            return res.status(404).json({
-                success: false,
-                message: 'Room not found'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            data: { room }
-        });
-    } catch (error) {
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid room ID'
-            });
-        }
-        next(error);
+    if (!room) {
+      res.status(404);
+      throw new Error(`Room not found with id of ${req.params.id}`);
     }
+
+    res.status(200).json({
+      success: true,
+      data: room
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// @desc    Update room
-// @route   PUT /rooms/:id
-// @access  Private/Admin
-const updateRoom = async (req, res, next) => {
-    try {
-        const { roomType, pricePerNight, amenities, maxGuests, roomNumber, description, size, isAvailable } = req.body;
+/**
+ * @desc    Update room
+ * @route   PUT /api/rooms/:id
+ * @access  Private/Admin
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Updated room data
+ */
+exports.updateRoom = async (req, res, next) => {
+  try {
+    let room = await Room.findById(req.params.id);
 
-        let room = await Room.findById(req.params.id);
-
-        if (!room) {
-            return res.status(404).json({
-                success: false,
-                message: 'Room not found'
-            });
-        }
-
-        // Check if room number is being changed and if it already exists
-        if (roomNumber && roomNumber !== room.roomNumber) {
-            const existingRoom = await Room.findOne({ 
-                hotelId: room.hotelId, 
-                roomNumber,
-                _id: { $ne: room._id }
-            });
-            if (existingRoom) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Room number already exists for this hotel'
-                });
-            }
-        }
-
-        // Update fields
-        room.roomType = roomType || room.roomType;
-        room.pricePerNight = pricePerNight !== undefined ? pricePerNight : room.pricePerNight;
-        room.amenities = amenities || room.amenities;
-        room.maxGuests = maxGuests || room.maxGuests;
-        room.roomNumber = roomNumber || room.roomNumber;
-        room.description = description || room.description;
-        room.size = size !== undefined ? size : room.size;
-        room.isAvailable = isAvailable !== undefined ? isAvailable : room.isAvailable;
-
-        await room.save();
-        await room.populate('hotelId', 'name location starRating');
-
-        res.status(200).json({
-            success: true,
-            message: 'Room updated successfully',
-            data: { room }
-        });
-    } catch (error) {
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid room ID'
-            });
-        }
-        next(error);
+    if (!room) {
+      res.status(404);
+      throw new Error(`Room not found with id of ${req.params.id}`);
     }
+
+    // If hotelId is being updated, check if new hotel exists
+    if (req.body.hotelId && req.body.hotelId !== room.hotelId.toString()) {
+      const hotel = await Hotel.findById(req.body.hotelId);
+      
+      if (!hotel) {
+        res.status(404);
+        throw new Error(`Hotel not found with id of ${req.body.hotelId}`);
+      }
+    }
+
+    room = await Room.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    }).populate({
+      path: 'hotelId',
+      select: 'name location starRating'
+    });
+
+    res.status(200).json({
+      success: true,
+      data: room
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// @desc    Delete room
-// @route   DELETE /rooms/:id
-// @access  Private/Admin
-const deleteRoom = async (req, res, next) => {
-    try {
-        const room = await Room.findById(req.params.id);
+/**
+ * @desc    Delete room
+ * @route   DELETE /api/rooms/:id
+ * @access  Private/Admin
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Success message
+ */
+exports.deleteRoom = async (req, res, next) => {
+  try {
+    const room = await Room.findById(req.params.id);
 
-        if (!room) {
-            return res.status(404).json({
-                success: false,
-                message: 'Room not found'
-            });
-        }
-
-        // Soft delete by setting isAvailable to false
-        room.isAvailable = false;
-        await room.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'Room deleted successfully'
-        });
-    } catch (error) {
-        if (error.name === 'CastError') {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid room ID'
-            });
-        }
-        next(error);
+    if (!room) {
+      res.status(404);
+      throw new Error(`Room not found with id of ${req.params.id}`);
     }
+
+    await room.remove();
+
+    res.status(200).json({
+      success: true,
+      data: {}
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-module.exports = {
-    createRoom,
-    getRooms,
-    getRoomById,
-    updateRoom,
-    deleteRoom
+/**
+ * @desc    Check room availability for dates
+ * @route   POST /api/rooms/:id/check-availability
+ * @access  Public
+ * @param   {Object} req - Express request object
+ * @param   {Object} res - Express response object
+ * @param   {Function} next - Express next function
+ * @returns {Object} Availability status
+ * 
+ * @example
+ * // Request body
+ * {
+ *   "startDate": "2023-09-01",
+ *   "endDate": "2023-09-05"
+ * }
+ */
+exports.checkRoomAvailability = async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.body;
+    
+    if (!startDate || !endDate) {
+      res.status(400);
+      throw new Error('Please provide start and end dates');
+    }
+    
+    const room = await Room.findById(req.params.id);
+    
+    if (!room) {
+      res.status(404);
+      throw new Error(`Room not found with id of ${req.params.id}`);
+    }
+    
+    const isAvailable = await room.isAvailableForDates(startDate, endDate);
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        isAvailable
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
 };
