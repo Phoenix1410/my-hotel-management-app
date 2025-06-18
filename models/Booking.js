@@ -63,7 +63,9 @@ const bookingSchema = new mongoose.Schema({
     bookingReference: {
         type: String,
         unique: true,
-        required: true
+        default: function() {
+            return 'BK' + Date.now() + Math.random().toString(36).substring(2, 9).toUpperCase();
+        }
     }
 }, {
     timestamps: true
