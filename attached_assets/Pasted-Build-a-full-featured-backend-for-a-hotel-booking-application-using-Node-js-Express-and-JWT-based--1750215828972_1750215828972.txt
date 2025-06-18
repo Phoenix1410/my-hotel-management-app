@@ -1,0 +1,155 @@
+Build a full-featured backend for a hotel booking application using Node.js, Express, and JWT-based authentication. Follow MVC architecture. Provide clean, modular, and production-grade code.
+
+ Tech Stack:
+
+Node.js
+
+Express
+
+MongoDB (Mongoose ODM)
+
+JWT Authentication
+
+Bcrypt for password hashing
+
+dotenv for environment variables
+
+Express middlewares for auth and error handling
+
+CORS enabled
+
+ Folder Structure:
+
+/controllers
+
+/models
+
+/routes
+
+/middlewares
+
+/config
+
+/utils
+
+server.js or app.js
+
+ Functionality Required:
+
+1. Authentication
+
+POST /auth/register — Register a new user (name, email, password)
+
+POST /auth/login — Login user, return JWT token
+
+GET /auth/profile — Return logged-in user's data
+
+Use bcrypt for password hashing
+
+Use jsonwebtoken for token generation & verification
+
+Include middleware: authMiddleware.js to protect routes
+
+2. User Roles
+
+Two roles: user and admin
+
+Middleware isAdmin.js to protect admin-only routes
+
+3. Hotel Management
+
+POST /hotels — Add new hotel (admin only)
+
+GET /hotels — Get list of hotels (with optional query params: location, name, star rating)
+
+GET /hotels/:id — Get hotel details by ID
+
+PUT /hotels/:id — Update hotel (admin only)
+
+DELETE /hotels/:id — Delete hotel (admin only)
+
+Hotel Fields:
+
+name, description, location, starRating, createdBy (admin id)
+
+4. Room Management
+
+POST /rooms — Add room to a hotel (admin only)
+
+GET /rooms?hotelId= — List rooms for a hotel
+
+GET /rooms/:id — Get room details
+
+PUT /rooms/:id — Edit room info (admin)
+
+DELETE /rooms/:id — Delete room (admin)
+
+Room Fields:
+
+hotelId, roomType, pricePerNight, amenities [WiFi, AC, etc], maxGuests, isAvailable
+
+5. Booking System
+
+POST /bookings — Book a room (requires auth)
+
+GET /bookings — Get bookings of logged-in user
+
+GET /bookings/all — Admin: get all bookings
+
+PUT /bookings/:id/cancel — Cancel booking
+
+Each booking should include: userId, roomId, hotelId, startDate, endDate, status (confirmed, cancelled), totalPrice
+
+6. Filters and Search
+
+/hotels?location=delhi&star=3 — Search by location and star
+
+/rooms?priceMin=1000&priceMax=4000&amenities=WiFi,AC — Filter rooms
+
+ Middleware:
+
+authMiddleware.js → JWT verification
+
+isAdmin.js → Admin access control
+
+errorHandler.js → Centralized error handling
+
+validateRequest.js → Validate inputs using Joi (optional)
+
+ Database:
+
+Use MongoDB and define schema using Mongoose
+
+Models:
+
+User
+
+Hotel
+
+Room
+
+Booking
+
+ Additional Features:
+
+.env file for secret keys and DB URL
+
+config/db.js → MongoDB connection logic
+
+Handle edge cases: invalid token, unavailable rooms, invalid dates, etc.
+
+Return appropriate HTTP status codes and messages
+
+ Output Format:
+
+Provide full code in multiple files
+
+Include sample request/response structure in comments
+
+Add Postman-style sample body for endpoints where relevant
+
+Use async/await with try-catch
+
+DO NOT generate any frontend code or database seeders.
+
+Return production-level, clean, readable backend code suitable for deployment.
