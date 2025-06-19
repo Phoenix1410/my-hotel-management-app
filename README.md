@@ -4,7 +4,7 @@ A RESTful API for a hotel booking system built with Node.js, Express, and MongoD
 
 ## Features
 
-- User authentication with JWT
+- User authentication with JWT, extremely user-friendly.
 - Role-based access control (user and admin roles)
 - Hotel management (CRUD operations)
 - Room management (CRUD operations)
