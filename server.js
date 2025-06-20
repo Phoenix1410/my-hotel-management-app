@@ -7,7 +7,9 @@ const connectDB = require('./config/db');
 const errorHandler = require('./middlewares/errorHandler');
 
 // Load environment variables
-dotenv.config();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 // Connect to database
 connectDB();
