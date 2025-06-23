@@ -29,7 +29,7 @@
                 
                 <!-- Auth Buttons -->
                 <div class="hidden md:flex items-center space-x-4">
-                    <button class="px-4 py-2 text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium">Login</button>
+                    <button id = "navbar-login-btn" class="px-4 py-2 text-gray-600 dark:text-gray-200 hover:text-primary-600 dark:hover:text-primary-400 font-medium" >Login</button>
                     <button class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition duration-300 ease-in-out transform hover:scale-105">Sign Up</button>
                 </div>
                 
@@ -614,32 +614,6 @@
             </div>
         </div>
     </footer>
-    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm p-6 bg-white rounded-lg shadow-md">
-        <form id="login-form">
-            <h2 class="text-2xl font-bold text-center text-gray-800">User Login</h2>
-
-            <!-- This div is for displaying error messages -->
-            <div id="error-message" class="mt-2 text-center text-red-600"></div>
-
-            <div class="mt-4">
-            <label for="login-email" class="block text-sm font-medium text-gray-700">Email:</label>
-            <input type="email" id="login-email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-            </div>
-
-            <div class="mt-4">
-            <label for="login-password" class="block text-sm font-medium text-gray-700">Password:</label>
-            <input type="password" id="login-password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-            </div>
-
-            <div class="mt-6">
-            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Login
-            </button>
-            </div>
-        </form>
-    </div>
-
-
     <!-- Toast Alert (Hidden by default) -->
     <div id="toast-alert" class="fixed bottom-4 right-4 z-50 hidden">
         <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
@@ -664,6 +638,60 @@
             </div>
         </div>
     </template>
+    <!-- This is the main container for the modal, hidden by default -->
+    <div id="auth-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
+    
+    <!-- This is the white popup box -->
+        <div class="relative w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+            
+            <!-- Close Button -->
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">×</button>
+            
+            <!-- Login Form (already has the correct IDs for auth.js) -->
+            <form id="login-form">
+            <h2 class="text-2xl font-bold text-center">User Login</h2>
+            <div id="error-message" class="mt-2 text-center text-red-600"></div>
+            <div class="mt-4">
+                <label for="login-email" class="block">Email:</label>
+                <input type="email" id="login-email" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            </div>
+            <div class="mt-4">
+                <label for="login-password" class="block">Password:</label>
+                <input type="password" id="login-password" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            </div>
+            <div class="mt-6">
+                <button type="submit" class="w-full py-2 px-4 bg-indigo-600 text-white font-medium rounded-md">Login</button>
+            </div>
+            </form>
+            <form id="signup-form" class="hidden"> <!-- It's hidden by default -->
+                <h2 class="text-2xl font-bold text-center">Create an Account</h2>
+                <div id="signup-error-message" class="mt-2 text-center text-red-600"></div>
+                    <div class="mt-4">
+                        <label for="signup-name" class="block">Name:</label>
+                        <input type="text" id="signup-name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div class="mt-4">
+                        <label for="signup-email" class="block">Email:</label>
+                        <input type="email" id="signup-email" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div class="mt-4">
+                        <label for="signup-password" class="block">Password:</label>
+                        <input type="password" id="signup-password" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div class="mt-6">
+                        <button type="submit" class="w-full py-2 px-4 bg-green-600 text-white font-medium rounded-md">Create Account</button>
+                </div>
+            </form>
+                <!-- === END: SIGNUP FORM === -->
+
+                <!-- === START: FORM TOGGLE LINK (to be added inside the modal) === -->
+            <div class="mt-4 text-center">
+                <a href="#" id="toggle-form-link" class="text-indigo-600 hover:underline">Don't have an account? Sign Up</a>
+            </div>
+            <!-- We will add the signup form here later -->
+
+        </div>
+    </div>
     <script src="/js/auth.js"></script>
 </body>
 </html>
