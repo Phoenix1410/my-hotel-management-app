@@ -78,8 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.ok && result.success) {
           // If login is successful, save the token and redirect
           localStorage.setItem('authToken', result.token);
-          alert('Login successful! Redirecting...');
-          window.location.href = '/bookings.html';
+          alert('Login successful! ');
+          document.getElementById('auth-modal').style.display = 'none';
         } else {
           // If login fails, show the error message from the server
           errorMessageDiv.textContent = result.message || 'Login failed.';
@@ -155,8 +155,8 @@ if (toggleFormLink)
         if (response.ok && result.success) {
           // If signup is successful, save token and redirect
           localStorage.setItem('authToken', result.token);
-          alert('Account created successfully! Redirecting...');
-          window.location.href = '/bookings.html';
+          alert('Account created successfully!');
+          document.getElementById('auth-modal').style.display = 'none'; 
         } else {
           signupErrorMessageDiv.textContent = result.message || 'Signup failed.';
         }
