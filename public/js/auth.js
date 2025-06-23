@@ -172,4 +172,30 @@ if (toggleFormLink)
       showModalInMode('login');
     });
   }
+  const setupPasswordToggle = (toggleBtnId, passwordInputId) => {
+  const toggleBtn = document.getElementById(toggleBtnId);
+  const passwordInput = document.getElementById(passwordInputId);
+  
+  if (toggleBtn && passwordInput) {
+    toggleBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      const icon = toggleBtn.querySelector('i'); // Get the icon inside the button
+
+      if (isPassword) {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    });
+  }
+};
+
+// Set up the toggle for both the login and signup forms
+setupPasswordToggle('toggle-login-password', 'login-password');
+setupPasswordToggle('toggle-signup-password', 'signup-password');
+
 });
